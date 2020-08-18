@@ -20,7 +20,7 @@ try {
 { std::cout << e.code() << std::endl; }
 #+END_SRC
 
-* How fast
+* How fast?
 :PROPERTIES:
 :CUSTOM_ID: how-fast
 :END:
