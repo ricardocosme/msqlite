@@ -1,0 +1,40 @@
+import os ;
+import testing ;
+
+local gbenchmark_path = [ os.environ GBENCHMARK ] ;
+if ! $(gbenchmark_path)
+{ gbenchmark_path = "../../gbenchmark" ; }
+
+project google-benchmark
+  : requirements
+    <include>$(gbenchmark_path)/include
+  ;
+
+lib pthread ;
+
+lib benchmark
+  : pthread
+  : <search>$(gbenchmark_path)/build/src
+  ;
+
+project msqlite_bench
+  : requirements
+    <library>/google-benchmark//benchmark
+    <optimization>speed
+    <variant>release
+  ;
+  
+exe open : open.cpp ;
+exe exec : exec.cpp ;
+exe for_each : for_each.cpp ;
+exe query : query.cpp ;
+
+install stage
+  : open
+    exec
+    for_each
+    query
+  : <install-dependencies>on <install-type>LIB <install-type>EXE
+    <variant>release:<location>stage/release
+  ;
+  

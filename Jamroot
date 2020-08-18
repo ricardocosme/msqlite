@@ -1,0 +1,44 @@
+import os ;
+
+local boost_root_path = [ os.environ BOOST_ROOT ] ;
+if ! $(boost_root_path)
+{ boost_root_path = "../boost" ; }
+
+local expected_path = [ os.environ EXPECTED_ROOT ] ;
+if ! $(expected_path)
+{ expected_path = "../expected" ; }
+
+use-project boost : $(boost_root_path) ;
+
+project sqlite ;
+
+lib sqlite3 ;
+
+project msqlite
+  : requirements
+    <cxxflags>-std=c++20
+    <include>include
+    <use>/boost//headers
+    <include>$(expected_path)/include
+    <library>/sqlite//sqlite3
+  : default-build
+    release
+    debug
+    <warnings>on
+  ;
+
+alias msqlite
+  :
+  :
+  :
+  : <include>include
+    <use>/boost//headers
+    <library>/sqlite//sqlite3
+    <include>$(expected_path)/include
+  ;
+explicit msqlite ;
+
+alias all
+  : test
+    demo
+  ;

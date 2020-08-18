@@ -1,0 +1,11 @@
+import testing ;
+
+run connection.cpp ;
+run open.cpp ;
+run exec.cpp ;
+run step.cpp ;
+run for_each.cpp ;
+# run empty.cpp ;
+run query.cpp ;
+run onerror.cpp ;
+run statement.cpp ;
