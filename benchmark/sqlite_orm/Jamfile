@@ -1,0 +1,36 @@
+import os ;
+import testing ;
+
+local sqlite_orm_path = [ os.environ SQLITE_ORM ] ;
+if ! $(sqlite_orm_path)
+{ sqlite_orm_path = "../../../sqlite_orm" ; }
+
+project sqlite_orm
+  : requirements
+    <include>$(sqlite_orm_path)/include
+  ;
+
+alias headers
+  :
+  :
+  :
+  : <include>$(sqlite_orm_path)/include
+  ;
+explicit headers ;
+
+project sqlite_orm_bench
+  : requirements
+    <library>/google-benchmark//benchmark
+    <use>/sqlite_orm//headers
+    <optimization>speed
+    <variant>release
+  ;
+  
+exe for_each : for_each.cpp ;
+
+install stage
+  : for_each
+  : <install-dependencies>on <install-type>LIB <install-type>EXE
+    <variant>release:<location>stage/release
+  ;
+  

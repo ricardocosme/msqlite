@@ -29,9 +29,11 @@ There are some benchmarks at ~benchmark/~ for each operation supported. The libr
 
 The benchmark ~benchmark/for_each.cpp~ that measures the efficiency in time to execute ~for_each(stmt, f)~ reports the following in my machine[1] using 20 repetitions:
 
-| operation | msqlite mean | msqlite stddev | sqlite3 mean | sqlite3 stddev | (cpp - c) / abs(c) | 
-| for_each  | 8496ns       | 29ns           | 8398ns       | 53ns           |            -0.0116 |
-
+| solution   | mean    | stddev | (msqlite - [solution]) / abs([solution]) |
+|------------+---------+--------+------------------------------------------|
+| msqlite    | 8496ns  | 29ns   |                                        0 |
+| sqlite3    | 8398ns  | 53ns   |                                  -0.0116 |
+| sqlite_orm | 85496ns | 148ns  |                                  +9.1805 |
 
 [1] AMD Ryzen 7 1700X Eight-Core Processor
 Run on (16 X 3900 MHz CPU s)
@@ -46,6 +48,7 @@ CPU Caches:
 
 * Dependencies
 + [[https://github.com/TartanLlama/expected][tl::expected]]
++ [[https://www.sqlite.org][libsqlite3]]
 
 * ToDo
 1. Take a look at Boost.Outcome to replace my ~result<T>~ and ~tl::expected<T, E>~.
