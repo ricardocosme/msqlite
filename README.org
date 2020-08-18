@@ -26,12 +26,12 @@ try {
 :END:
 There are some benchmarks at ~benchmark/~ for each operation supported. The library is compared to solutions using the C sqlite3 library. I think that is not a fair comparison in a sense of look what we have versus what we pay for it, of course that we have more using msqlite versus sqlite3, but this "unfair" comparison is useful to known how fast is a solution using msqlite.
 
-The benchmark ~benchmark/for_each.cpp~ that measures the efficiency in time to execute ~for_each(stmt, f)~ reports the following in my machine[1]:
+
+The benchmark ~benchmark/for_each.cpp~ that measures the efficiency in time to execute ~for_each(stmt, f)~ reports the following in my machine[1] using 20 repetitions:
 
 | operation | msqlite mean | msqlite stddev | sqlite3 mean | sqlite3 stddev | (cpp - c) / abs(c) | 
 | for_each  | 8496ns       | 29ns           | 8398ns       | 53ns           |            -0.0116 |
 
-20 repetitions 
 
 [1] AMD Ryzen 7 1700X Eight-Core Processor
 Run on (16 X 3900 MHz CPU s)
