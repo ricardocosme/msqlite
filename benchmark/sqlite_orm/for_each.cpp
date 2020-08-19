@@ -14,13 +14,13 @@ std::size_t i0{};
 static void wmsqlite(benchmark::State& state) {
     auto conn = *sql::open("/tmp/msqlite_exec.db");
     sql::exec(conn,
-              "create table person(name TEXT);"
-              "insert into person values('abc');"
-              "insert into person values('def');");
+              "create table person(name TEXT, salary REAL);"
+              "insert into person values('abc', 10000.00);"
+              "insert into person values('def', 11000.00);");
     for(auto _ : state) {
-        auto r = sql::query(conn, "select name from person");
+        auto r = sql::query(conn, "select name, salary from person");
         if(r) {
-            auto r2 = sql::for_each(*r, [](string_view s){ ++i0; });
+            auto r2 = sql::for_each(*r, [](string_view s, float salary){ ++i0; });
             if(!r2) cout << r2.error().value() << endl;
         }
     }
