@@ -29,11 +29,10 @@ There are some benchmarks at ~benchmark/~ for each operation supported. The libr
 
 The benchmark ~benchmark/for_each.cpp~ that measures the efficiency in time to execute ~for_each(stmt, f)~ reports the following in my machine[1] using 20 repetitions:
 
-| solution   | mean    | stddev | (msqlite - [solution]) / abs([solution]) |
-|------------+---------+--------+------------------------------------------|
-| msqlite    | 8496ns  | 29ns   |                                        0 |
-| sqlite3    | 8398ns  | 53ns   |                                  -0.0116 |
-| sqlite_orm | 13399ns | 58ns   |                                  +0.5771 |
+| solution | mean   | stddev | ([solution] - msqlite) / abs(msqlite) |
+|----------+--------+--------+------------------------------------|
+| msqlite  | 5204ns | 18ns   |                                  0 |
+| sqlite3  | 5108ns | 18ns   |                            -0.0185 |
 
 [1] AMD Ryzen 7 1700X Eight-Core Processor
 Run on (16 X 3900 MHz CPU s)

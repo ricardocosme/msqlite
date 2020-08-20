@@ -6,8 +6,7 @@
 namespace msqlite::detail {
 
 template<typename F>
-result<void>
-for_each(stmt& stmt, F&& f) {
+result<void> for_each(stmt& stmt, F&& f) {
     int res;
     do {
         res = sqlite3_step(stmt.get());
@@ -19,9 +18,12 @@ for_each(stmt& stmt, F&& f) {
         else break;
     } while (true);
     
-    stmt.finalize();
-    
-    if(res == SQLITE_DONE) return {};
+    if(res == SQLITE_DONE) {
+        //postcondition: it always returns SQLITE_OK here. We don't
+        //need to check the result.
+        sqlite3_reset(stmt.get());
+        return {};
+    }
     
     return std::error_code{error{res}};
 }

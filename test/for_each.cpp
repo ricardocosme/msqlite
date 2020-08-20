@@ -26,6 +26,8 @@ int main(){
         res_t res;
         BOOST_TEST(for_each(*pstmt, [&](float salary){ res.emplace_back(salary); }));
         BOOST_TEST((res == res_t{1000.00, 1200.00, 1100.00}));
+        BOOST_TEST(for_each(*pstmt, [&](float salary){ res.emplace_back(salary); }));
+        BOOST_TEST((res == res_t{1000.00, 1200.00, 1100.00, 1000.00, 1200.00, 1100.00}));
     }
 
     //success with multiple rows
