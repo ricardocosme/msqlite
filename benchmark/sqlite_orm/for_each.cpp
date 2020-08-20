@@ -15,8 +15,9 @@ static void wmsqlite(benchmark::State& state) {
     auto conn = *sql::open("/tmp/msqlite_exec.db");
     sql::exec(conn,
               "create table person(name TEXT, salary REAL);"
-              "insert into person values('abc', 10000.00);"
-              "insert into person values('def', 11000.00);");
+              "insert into person values('jimmy', 10000.00);"
+              "insert into person values('john', 9500.00);"
+              "insert into person values('robert', 11000.00);");
     for(auto _ : state) {
         auto r = sql::query(conn, "select name, salary from person");
         if(r) {
@@ -43,12 +44,12 @@ static void wsqlite_orm(benchmark::State& state) {
 
     storage.sync_schema();
     storage.remove_all<person>();  //  remove all old employees in case they exist in db..
-
+    storage.open_forever();
+    
     person jimmy{"jimmy", 10000.00};
     person john{"john", 9500.00};
     person robert{"robert", 11000.00};
 
-    //  insert employees. `insert` function returns id of inserted object..
     storage.insert(jimmy);
     storage.insert(john);
     storage.insert(robert);
