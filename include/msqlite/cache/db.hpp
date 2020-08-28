@@ -32,7 +32,9 @@ public:
                                   [&](auto& p){ return p.first == s; });
            it != _stmts.end())
         {
-            return it->second.get();
+            auto& stmt = *it->second;
+            detail::bind_params(stmt.get(), std::move(binds));
+            return &stmt;
         } else {
             return static_cast<result<stmt*>&&>(
                 detail::prepare_impl(as_base(), s, std::make_tuple()).map(
