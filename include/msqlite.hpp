@@ -8,6 +8,7 @@
 #include <msqlite/bind.hpp>
 #include <msqlite/empty_or_error.hpp>
 #include <msqlite/exec.hpp>
+#include <msqlite/first.hpp>
 #include <msqlite/for_each.hpp>
 #include <msqlite/onerror.hpp>
 #include <msqlite/open.hpp>
