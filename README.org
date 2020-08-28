@@ -216,9 +216,10 @@ There are some benchmarks at ~benchmark/~ that compares msqlite with the sqlite 
 
 ~diff~ is equal to ~(msqlite - sqlite) / |sqlite|~ and ~iters~ is the number of iterations to each repetition
 
-The benchmarks were executed at the machine below using the median of 9 repetitions.
+The benchmarks were executed at the environment below using the median of 9 repetitions.
 
 #+BEGIN_SRC
+GCC 10.1.0 with O3
 AMD Ryzen 7 1700X Eight-Core Processor
 Run on (16 X 3900 MHz CPU s)
 CPU Caches:
