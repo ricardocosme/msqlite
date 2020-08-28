@@ -2,10 +2,15 @@ import testing ;
 
 run connection.cpp ;
 run open.cpp ;
+run open_throws.cpp ;
 run exec.cpp ;
+run exec_throws.cpp ;
+run exec_cache_db.cpp ;
+run exec_cache_db_throws.cpp ;
 run step.cpp ;
 run for_each.cpp ;
 # run empty.cpp ;
-run query.cpp ;
+run prepare.cpp ;
 run onerror.cpp ;
+run reset.cpp ;
 run statement.cpp ;

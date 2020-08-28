@@ -28,12 +28,14 @@ exe open : open.cpp ;
 exe exec : exec.cpp ;
 exe for_each : for_each.cpp ;
 exe query : query.cpp ;
+exe cache_stmts : cache_stmts.cpp ;
 
 install stage
   : open
     exec
     for_each
     query
+    cache_stmts
   : <install-dependencies>on <install-type>LIB <install-type>EXE
     <variant>release:<location>stage/release
   ;

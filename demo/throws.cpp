@@ -3,13 +3,14 @@
 #include <iostream>
 
 namespace sql = msqlite::throws;
+using namespace std;
 
 int main() {
     try {
         auto conn = sql::open("dev.db");
-        auto stmt = sql::query(conn, "select name, salary from person");
-        sql::for_each(stmt, [](std::string_view name, float salary)
-        { std::cout << name << "," << salary << std::endl; });
-    } catch(const std::system_error& e)
-    { std::cout << e.code() << std::endl; }
+        auto stmt = sql::prepare(conn, "select name, salary from person");
+        sql::for_each(stmt, [](string_view name, float salary)
+        { cout << name << "," << salary << endl; });
+    } catch(const system_error& e)
+    { cout << e.code() << endl; }
 }

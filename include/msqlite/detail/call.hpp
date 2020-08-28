@@ -13,6 +13,8 @@ struct param : std::variant<float, std::string_view> {
     using base = std::variant<float, std::string_view>;
     using base::base;
 
+    //TODO: These function can't throw an exception that will not be
+    //catched by value().
     operator float() const
     { return std::get<float>(*this); }
     
@@ -26,8 +28,7 @@ struct param : std::variant<float, std::string_view> {
 inline param value(sqlite3_stmt* stmt, int i) {
     switch(sqlite3_column_type(stmt, i)) {
     case SQLITE_FLOAT:
-        return static_cast<float>
-            (sqlite3_column_double(stmt, i));
+        return static_cast<float>(sqlite3_column_double(stmt, i));
     default: {
         auto s = reinterpret_cast<const char*>(sqlite3_column_text(stmt, i));
         return s ? s : "";

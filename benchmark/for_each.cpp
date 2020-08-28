@@ -13,18 +13,17 @@ auto select(std::string_view db) {
         "create table person(name TEXT);"
         "insert into person values('abc');"
         "insert into person values('def');")
-    | sql::query("select name from person");
+    | sql::prepare("select name from person");
 }
+
+std::string_view s;
 
 static void wmsqlite(benchmark::State& state) {
     auto filename = "/tmp/msqlite_for_each.db";
     auto ctx = select(filename);
     auto& stmt = ctx.get_stmt();
     for(auto _ : state) {
-        auto r2 = sql::for_each(*stmt, [](string_view s)
-        {
-            benchmark::DoNotOptimize(s);
-        });
+        auto r2 = sql::for_each(*stmt, [](string_view p){ s = p; });
         if(!r2) cout << r2.error().value() << endl;
     }
     std::filesystem::remove(filename);
@@ -32,31 +31,32 @@ static void wmsqlite(benchmark::State& state) {
 
 BENCHMARK(wmsqlite);
 
+std::string_view s2;
 inline void f(const char* s)
-{ benchmark::DoNotOptimize(s); }
+{ s2 = s; }
     
-static void wsqlite3(benchmark::State& state) {
-    auto filename = "/tmp/sqlite3_for_each.db";
+static void wsqlite(benchmark::State& state) {
+    auto filename = "/tmp/sqlite_for_each.db";
     auto ctx = select(filename);
     auto stmt = ctx.get_stmt()->get();
     for(auto _ : state) {
-        int res;
+        int rc;
         do {
-            res = sqlite3_step(stmt);
-            if(res == SQLITE_ROW) {
+            rc = sqlite3_step(stmt);
+            if(rc == SQLITE_ROW) {
                 auto p = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
                 f(p ? p : "");
             } else break;
         } while (true);
-        if(res == SQLITE_DONE) {
+        if(rc == SQLITE_DONE) {
             sqlite3_reset(stmt);
             continue;
         }
-        cout << res << endl;
+        cout << rc << endl;
     }
     std::filesystem::remove(filename);
 }
 
-BENCHMARK(wsqlite3);
+BENCHMARK(wsqlite);
 
 BENCHMARK_MAIN();

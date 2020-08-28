@@ -2,7 +2,7 @@
 #include <msqlite/open.hpp>
 #include <msqlite/exec.hpp>
 #include <msqlite/step.hpp>
-#include <msqlite/query.hpp>
+#include <msqlite/prepare.hpp>
 
 using namespace std;
 using namespace msqlite;
@@ -19,7 +19,7 @@ int main(){
     {
         auto conn = create();
         BOOST_TEST(conn);
-        auto pstmt = query(*conn, "select salary from person");
+        auto pstmt = prepare(*conn, "select salary from person");
         BOOST_TEST(pstmt);
         BOOST_TEST(pstmt->get());
         using res_t = std::vector<float>;
@@ -32,7 +32,7 @@ int main(){
     {
         auto conn = create();
         BOOST_TEST(conn);
-        auto pstmt = query(*conn, "select salary from person where name='not_exist'");
+        auto pstmt = prepare(*conn, "select salary from person where name='not_exist'");
         BOOST_TEST(pstmt);
         BOOST_TEST(pstmt->get());
         using res_t = std::vector<float>;
@@ -45,7 +45,7 @@ int main(){
 
     {
         auto r = create()
-            | query("select salary from person")
+            | prepare("select salary from person")
             | step([&](float salary){ return salary; })
             ;
         BOOST_TEST(r);
@@ -58,7 +58,7 @@ int main(){
     
     {
         auto stmt = create()
-            | query("select salary from person");
+            | prepare("select salary from person");
         auto r = stmt
             | step([&](float salary){ return salary; })
             ;
@@ -67,13 +67,13 @@ int main(){
         BOOST_TEST(r.conn());
         BOOST_TEST((*r.conn())->get());
         BOOST_TEST(r.get_stmt());
-        BOOST_TEST(r.get_stmt()->get());
+        BOOST_TEST((*r.get_stmt())->get());
     }
     
     {
         auto conn = create();
         auto r = conn
-            | query("select salary from person")
+            | prepare("select salary from person")
             | step([&](float salary){ return salary; })
             ;
         BOOST_TEST(r);
@@ -87,7 +87,7 @@ int main(){
     {
         auto conn = create();
         auto stmt = conn
-            | query("select salary from person");
+            | prepare("select salary from person");
         auto r = stmt
             | step([&](float salary){ return salary; })
             ;
@@ -96,13 +96,13 @@ int main(){
         BOOST_TEST(r.conn());
         BOOST_TEST((*r.conn())->get());
         BOOST_TEST(r.get_stmt());
-        BOOST_TEST(r.get_stmt()->get());
+        BOOST_TEST((*r.get_stmt())->get());
     }
     
     {
         std::vector<float> res;
         auto r = create()
-            | query("select salary from person")
+            | prepare("select salary from person")
             | step([&](float salary){ return res.emplace_back(salary); })
             | step([&](float salary){ return res.emplace_back(salary); })
             ;

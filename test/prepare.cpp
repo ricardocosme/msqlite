@@ -1,7 +1,7 @@
 #include <boost/core/lightweight_test.hpp>
 #include <msqlite/open.hpp>
 #include <msqlite/exec.hpp>
-#include <msqlite/query.hpp>
+#include <msqlite/prepare.hpp>
 
 using namespace std;
 using namespace msqlite;
@@ -18,7 +18,7 @@ int main(){
     {
         auto conn = create();
         BOOST_TEST(conn);
-        auto r = query(*conn, "select name from person");
+        auto r = prepare(*conn, "select name from person");
         BOOST_TEST(r);
         BOOST_TEST(r->get());
     }
@@ -26,14 +26,14 @@ int main(){
     {
         auto conn = create();
         BOOST_TEST(conn);
-        auto r = query(*conn, "invalid query");
+        auto r = prepare(*conn, "invalid prepare");
         BOOST_TEST(!r);
         BOOST_TEST(r.error() == error::error);
     }
     
     {
         auto r = create()
-            | query("select name from person");
+            | prepare("select name from person");
         BOOST_TEST(r.get_stmt());
         BOOST_TEST(r.conn());
         BOOST_TEST(r.conn()->get());
@@ -42,7 +42,7 @@ int main(){
     
     {
         auto r = create()
-            | query("invalid stmt");
+            | prepare("invalid stmt");
 
         BOOST_TEST(!r.get_stmt());
         BOOST_TEST(r.get_stmt().error() == error::error);
@@ -53,7 +53,7 @@ int main(){
     {
         auto conn = create();
         auto r = conn
-            | query("select name from person");
+            | prepare("select name from person");
 
         BOOST_TEST(r.get_stmt());
         BOOST_TEST(conn->get());
@@ -64,7 +64,7 @@ int main(){
     {
         auto conn = create();
         auto r = conn
-            | query("invalid");
+            | prepare("invalid");
 
         BOOST_TEST(!r.get_stmt());
         BOOST_TEST(r.get_stmt().error() == error::error);
@@ -76,7 +76,7 @@ int main(){
         auto conn = create();
         auto lv = conn | exec("insert into person values('jkl')");
         auto r = lv
-            | query("select name from person");
+            | prepare("select name from person");
 
         BOOST_TEST(r.get_stmt());
         BOOST_TEST(conn->get());
@@ -88,7 +88,7 @@ int main(){
         auto conn = create();
         auto r = conn
             | exec("insert into person values('jkl')")
-            | query("select name from person");
+            | prepare("select name from person");
 
         BOOST_TEST(r.get_stmt());
         BOOST_TEST(conn->get());

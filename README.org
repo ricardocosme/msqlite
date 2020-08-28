@@ -1,46 +1,232 @@
 * msqlite
-It's a C++20 SQLite3 wrapper which has as its main goal an expressive code that [[#how-fast][runs fast]].
+It's a C++20 [[https://sqlite.org][SQLite]] wrapper which has as its main goal an expressive code that [[#how-fast-is-it][runs fast]].
 
 #+BEGIN_SRC C++
 sql::open("dev.db")
-| sql::query("select name, salary from person")
-| sql::for_each([](std::string_view name, float salary)
-  { std::cout << name << "," << salary << std::endl; })
-| sql::onerror([](auto e){ std::cout << e << std::endl; });
+| sql::prepare("select name, salary from person")
+| sql::for_each([](string_view name, float salary)
+  { cout << name << "," << salary << endl; })
+| sql::onerror([](auto e){ cout << e << endl; });
 #+END_SRC
-This code uses ~result<T>~ instead of C++ exceptions and the pipe operator(~|~) is used to chain the operations. The usage of pipes are optional and there is an API that throws exceptions:
+The code above uses ~result<T>~ instead of C++ exceptions and the pipe operator(~|~) is used to [[#chaining-operations-with-pipes][chain operations]]. The usage of pipes is optional, the programmer can use [[#the-essential][the essential]] API using free functions and handling the result of each operation. The usage of ~result<T>~ to handling errors is also optional, C++ exceptions can be used through the API that throws exceptions. Example without pipes that uses C++ exceptions: 
+#+BEGIN_SRC C++
+namespace sql = msqlite::throws;
+try {
+    auto db = sql::open("dev.db");
+    auto stmt = sql::prepare(db, "select name, salary from person");
+    sql::for_each(stmt, [](string_view name, float salary)
+    { cout << name << "," << salary << endl; });
+} catch(const system_error& e)
+{ cout << e.code() << endl; }
+#+END_SRC
+
+** Cache of prepared statements
+*** Easily using the database connection
+The prepared statements can be easily persisted using a database(~cache::db~) that caches each statement which is compiled. The only thing that should be done is call the function ~open(filename, cache_stmts)~ to obtain a ~cache::db~ instance which must be stored in a manner that the database instance lives at least until the last evaluation of a statement that was cached. Take a look at ~demo/cache_stmts/using_db.cpp~ to see an example.
+
+*** By hand
+The database connection and each prepared statement can be stored and reused through lvalue expressions. This approach is more flexible and can be more efficient too, but it is more work to be done by the developer. It's flexible because the programmer can choose how to store the prepared statements(~stmt~) and it can be faster because the statements can be stored without dynamic allocation and runtime searching to obtain the prepared statement from a dynamic cache. Take a look at ~demo/cache_stmts/by_hand.cpp~ to see an example.
+
+** The essential
+:PROPERTIES:
+:CUSTOM_ID: the-essential
+:END:
+The free functions that executes the basic operations using a database connection and prepared statements. Error handling can be done by using ~result<T>~ or C++ exceptions to report errors.
+
+*** ~db~ and ~cache::db~
+They represent a database connection using RAII to close the connection when the object is destroyed. The model ~cache::db~ caches each prepared statement that is compiled through the connection.
+
+*** ~stmt~
+It represents a prepared statement using RAII to finalize the statement when the object is destroyed.
+
+*** ~open()~
+Returns a database connection.
+#+BEGIN_SRC C++
+result<db> open(string_view filename) noexcept
+result<db> open(string_view filename, cache_stmts) noexcept
+#+END_SRC
+Example: ~auto db = open("dev.db")~
+
+**** Using exceptions
+#+BEGIN_SRC C++
+db throws::open(string_view filename)
+db throws::open(string_view filename, cache_stmts)
+#+END_SRC
+
+*** ~exec()~
+Executes a statement witout returning any results and optionally binds a sequence of values.
+#+BEGIN_SRC C++
+template<typename... Values>
+result<void> exec(const db&, string_view stmt, Values&&...) noexcept
+
+template<typename... Values>
+result<void> exec(const cache::db&, string_view stmt, Values&&...) noexcept
+
+template<typename... Values>
+result<void> exec(stmt&, Values&&...) noexcept
+#+END_SRC
+Example: ~exec(db, "insert into person values(?,?)", "john", 10000.00)~
+
+**** Using exceptions
+#+BEGIN_SRC C++
+template<typename... Values>
+void exec(const db&, string_view stmt, Values&&...)
+
+template<typename... Values>
+void exec(const cache::db&, string_view stmt, Values&&...)
+
+template<typename... Values>
+void exec(stmt&, Values&&...)
+#+END_SRC
+
+*** ~prepare()~
+Prepares a statement and optionally binds a sequence of values.
+#+BEGIN_SRC C++
+template<typename... Binds>
+result<stmt> prepare(const db&, string_view stmt, Binds&&...) noexcept
+
+template<typename... Binds>
+result<stmt*> prepare(cache::db&, string_view stmt, Binds&&...) noexcept
+#+END_SRC
+Example: ~prepare(db, "select name, salary from person where name = ?", "john")~
+
+**** Using exceptions
+#+BEGIN_SRC C++
+template<typename... Binds>
+result<stmt> prepare(const db&, string_view stmt, Binds&&...)
+
+template<typename... Binds>
+result<stmt*> prepare(cache::db&, string_view stmt, Binds&&...)
+#+END_SRC
+
+*** ~bind()~
+Binds a sequence of values to evaluates a prepared statement.
+#+BEGIN_SRC C++
+template<typename... Values>
+void bind(stmt&, Values&&...) noexcept
+#+END_SRC
+Example: ~bind(insert_person, "john")~
+
+**** Using exceptions
+ToDo
+
+*** ~step()~
+Evaluates a statement and calls a function to handle the results.
+#+BEGIN_SRC C++
+template<typename F, typename T = detail::result_of_F<F> >
+result<T> step(stmt&, F&&)
+#+END_SRC
+Example: ~step(select_person, [](string_view name, float salary){ /*do something*/ })~
+
+**** Using exceptions
+#+BEGIN_SRC C++
+template<typename F, typename T = detail::result_of_F<F> >
+T step(stmt&, F&&)
+#+END_SRC
+
+*** ~reset()~
+Resets a prepared statement.
+#+BEGIN_SRC C++
+result<void> reset(stmt&) noexcept
+#+END_SRC
+Example: ~reset(insert_person)~
+
+**** Using exceptions
+ToDo
+
+*** ~for_each()~
+Evaluates a ~select~ statement and calls a fuction to handle each row that is returned.
+#+BEGIN_SRC C++
+template<typename F>
+result<void> for_each(stmt&, F&&)
+
+#+END_SRC
+Example: ~for_each(select_persons, [](string_view name, float salary){ /*do something*/ })~
+
+**** Using exceptions
+#+BEGIN_SRC C++
+template<typename F>
+void for_each(stmt&, F&&)
+#+END_SRC
+
+** Chaining operations with pipes
+:PROPERTIES:
+:CUSTOM_ID: chaining-operations-with-pipes
+:END:
+The operations that were presented at the [[#the-essential][previous section]] can be chained through the usage of the pipe operator(~|~) to avoid boilerplates, this approach avoids intermediary objets to collet results that should be forward to a next operation as an argument, let's consider the following code using C++ exceptions:
+
 #+BEGIN_SRC C++
 namespace sql = msqlite::throws;
 try {
     auto conn = sql::open("dev.db");
-    auto stmt = sql::query(conn, "select name, salary from person");
-    sql::for_each(stmt, [](std::string_view name, float salary)
-    { std::cout << name << "," << salary << std::endl; });
-} catch(const std::system_error& e)
-{ std::cout << e.code() << std::endl; }
+    auto stmt = sql::prepare(conn, "select name, salary from person");
+    sql::for_each(stmt, [](string_view name, float salary)
+    { cout << name << "," << salary << endl; });
+} catch(const system_error& e)
+{ cout << e.code() << endl; }
+#+END_SRC
+*Note: There isn't yet an implementation to use pipes with the API that throws exceptions.*
+
+The objects ~conn~ and ~stmt~ exist only to chain the operations ~open()~, ~prepare()~ and ~for_each()~ in the left to right order. The usage of pipes eliminates the intermediary objects with a natural code that can be read from the top to the bottom and from the left to the right:
+
+#+BEGIN_SRC C++
+namespace sql = msqlite::throws;
+try {
+    sql::open("dev.db")
+    | sql::prepare("select name, salary from person")
+    | sql::for_each([](string_view name, float salary)
+      { cout << name << "," << salary << endl; });
+} catch(const system_error& e)
+{ cout << e.code() << endl; }
 #+END_SRC
 
-* How fast?
+However, when using the API that uses ~result<T>~ to propagate errors, the usage of pipes can also remove the boilerplate that is necessary to handle a result when it is not desirable to do local error handling. Let's consider the following:
+
+#+BEGIN_SRC C++
+if(auto db = sql::open("dev.db")) {
+    if(auto stmt = sql::prepare(*db, "select name, salary from person")) {
+        auto r = sql::for_each(*stmt, [](string_view name, float salary)
+            { cout << name << "," << salary << endl; });
+        if(!r) cout << r.error() << endl;
+    } else cout << stmt.error() << endl;
+} else cout << db.error() << endl;
+#+END_SRC
+
+The usage of pipes can remove the conditionals to check and handle errors replacing them with monadic operations like ~map~ and ~mbind~ in the implementation:
+
+#+BEGIN_SRC C++
+sql::open("dev.db")
+| sql::prepare("select name, salary from person")
+| sql::for_each([](string_view name, float salary)
+  { cout << name << "," << salary << endl; })
+| onerror([](auto e){ cout << e << endl; });
+#+END_SRC
+
+** How fast is it?
 :PROPERTIES:
-:CUSTOM_ID: how-fast
+:CUSTOM_ID: how-fast-is-it
 :END:
-There are some benchmarks at ~benchmark/~ for each operation supported. The library is compared to solutions using the C sqlite3 library. I think that is not a fair comparison in a sense of look what we have versus what we pay for it, of course that we have more using msqlite versus sqlite3, but this "unfair" comparison is useful to known how fast is a solution using msqlite.
+There are some benchmarks at ~benchmark/~ that compares msqlite with the sqlite library. I think that is not always a fair comparison in a sense of look what we have versus what we pay for it.
 
+| bench      | sqlite  |  iters | stddev | msqlite |  iters | stddev |    diff |
+|------------+---------+--------+--------+---------+--------+--------+---------|
+| open()     | 30431ns |  23161 | 31ns   | 30677ns |  22797 | 34ns   | +0.0081 |
+| exec()     | 36500ns |  19330 | 49ns   | 36748ns |  19311 | 143ns  | +0.0068 |
+| for_each() | 5036ns  | 141638 | 19ns   | 5130ns  | 138310 | 12ns   | +0.0185 |
 
-The benchmark ~benchmark/for_each.cpp~ that measures the efficiency in time to execute ~for_each(stmt, f)~ reports the following in my machine[1] using 20 repetitions:
+~diff~ is equal to ~(msqlite - sqlite) / |sqlite|~ and ~iters~ is the number of iterations to each repetition
 
-| solution | mean   | stddev | ([solution] - msqlite) / abs(msqlite) |
-|----------+--------+--------+------------------------------------|
-| msqlite  | 5204ns | 18ns   |                                  0 |
-| sqlite3  | 5108ns | 18ns   |                            -0.0185 |
+The benchmarks were executed at the machine below using the median of 9 repetitions.
 
-[1] AMD Ryzen 7 1700X Eight-Core Processor
+#+BEGIN_SRC
+AMD Ryzen 7 1700X Eight-Core Processor
 Run on (16 X 3900 MHz CPU s)
 CPU Caches:
   L1 Data 32 KiB (x8)
   L1 Instruction 64 KiB (x8)
   L2 Unified 512 KiB (x8)
   L3 Unified 8192 KiB (x2)
+#+END_SRC
 
 * Supported compilers
 + GCC 10.1

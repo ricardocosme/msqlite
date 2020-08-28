@@ -1,10 +1,12 @@
 #pragma once
 
 #include "msqlite/concepts.hpp"
+#include "msqlite/error.hpp"
 
 #include "msqlite/pipes/detail/empty_or_error.hpp"
 
 #include <concepts>
+#include <optional>
 
 namespace msqlite {
 

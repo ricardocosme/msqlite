@@ -2,10 +2,10 @@
 
 #include "msqlite/result.hpp"
 #include "msqlite/pipes/context.hpp"
-#include "msqlite/pipes/detail/step.hpp"
 #include "msqlite/stmt.hpp"
 
 #include "msqlite/detail/step.hpp"
+#include "msqlite/pipes/detail/step.hpp"
 
 namespace msqlite {
 
@@ -34,7 +34,7 @@ namespace msqlite {
 //Example:
 //
 //  if(auto dbase = open("person.db"))
-//      if(auto stmt = query(*dbase, "select name, salary from person")) {
+//      if(auto stmt = prepare(*dbase, "select name, salary from person")) {
 //          auto r = step(*stmt, [](std::string_view name, float salary)
 //              { std::cout << name << "|" << salary << std::endl; });
 //          if(!r) std::cout << r.error() << std::endl;
@@ -66,7 +66,7 @@ inline auto step(F&& f)
 //element in the chain until someone catch it. Example:
 //
 //  auto r = open("person.db")
-//  | query("select name, salary from person")
+//  | prepare("select name, salary from person")
 //  | step([](std::string_view name, float salary)
 //    { std::cout << name << "|" << salary << std::endl; });
 //  if(!r) std::cout << r.error() << std::endl;

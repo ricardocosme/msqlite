@@ -12,11 +12,23 @@ int main(){
     }
     
     {
+        auto conn = sql::open(sql::cache_stmts);
+        BOOST_TEST(conn);
+        BOOST_TEST(conn->get());
+    }
+    
+    {
         auto conn = sql::open("");
         BOOST_TEST(conn);
         BOOST_TEST(conn->get());
     }
 
+    {
+        auto conn = sql::open("", sql::cache_stmts);
+        BOOST_TEST(conn);
+        BOOST_TEST(conn->get());
+    }
+    
     {
         auto conn = sql::open("///");
         BOOST_TEST(!conn);

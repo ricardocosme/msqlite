@@ -13,7 +13,7 @@ auto select(std::string_view db) {
         "create table person(name TEXT);"
         "insert into person values('abc');"
         "insert into person values('def');")
-    | sql::query("select name from person");
+    | sql::prepare("select name from person");
 }
 
 static void wmsqlite(benchmark::State& state) {
@@ -61,7 +61,7 @@ BENCHMARK(wsqlite3);
 
 #include <SQLiteWrapper.h>
 
-std::string query() {
+std::string prepare() {
     return std::string{"select name from person"};
 }
 
@@ -72,7 +72,7 @@ static void wsqlite_wrapper(benchmark::State& state) {
     using db = sqlite::Database<filename>;
 
     for(auto _ : state) {
-        db::QueryResult fetch_row = db::query<query>();
+        db::PrepareResult fetch_row = db::prepare<prepare>();
         std::string_view name;
         while(fetch_row(name)) {
             benchmark::DoNotOptimize(name);

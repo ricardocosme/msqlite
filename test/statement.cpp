@@ -1,6 +1,6 @@
 #include <boost/core/lightweight_test.hpp>
 #include <msqlite/open.hpp>
-#include <msqlite/query.hpp>
+#include <msqlite/prepare.hpp>
 #include <msqlite/stmt.hpp>
 
 #include <iostream>
@@ -18,7 +18,7 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         {
@@ -34,7 +34,7 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         {
@@ -48,7 +48,7 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         {
@@ -63,12 +63,12 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         auto c2 = open();
         BOOST_TEST(c2);
-        auto s2 = query(*c2, "create table t(col TEXT)");
+        auto s2 = prepare(*c2, "create table t(col TEXT)");
         BOOST_TEST(s2);
         auto ps2 = s2->release();
         {
@@ -85,7 +85,7 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         {
@@ -99,7 +99,7 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         {
@@ -113,7 +113,7 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         {
@@ -127,14 +127,14 @@ int main(){
     {
         auto c = open();
         BOOST_TEST(c);
-        auto s = query(*c, "create table t(col TEXT)");
+        auto s = prepare(*c, "create table t(col TEXT)");
         BOOST_TEST(s);
         auto ps = s->release();
         {
             stmt s{ps};
             auto c2 = open();
             BOOST_TEST(c2);
-            auto s2 = query(*c2, "create table t(col TEXT)");
+            auto s2 = prepare(*c2, "create table t(col TEXT)");
             BOOST_TEST(s2);
             auto ps2 = s2->release();
             s.reset(ps2);

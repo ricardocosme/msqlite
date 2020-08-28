@@ -3,7 +3,7 @@
 #include <msqlite/exec.hpp>
 #include <msqlite/step.hpp>
 #include <msqlite/onerror.hpp>
-#include <msqlite/query.hpp>
+#include <msqlite/prepare.hpp>
 
 using namespace std;
 using namespace msqlite;
@@ -20,7 +20,7 @@ int main(){
     {
         auto conn = create();
         BOOST_TEST(conn);
-        auto pstmt = query(*conn, "select salary from person where name='invalid'");
+        auto pstmt = prepare(*conn, "select salary from person where name='invalid'");
         BOOST_TEST(pstmt);
         BOOST_TEST(pstmt->get());
         using res_t = std::vector<float>;
@@ -35,7 +35,7 @@ int main(){
     {
         bool called{};
         create()
-            | query("select salary from person where name='invalid'")
+            | prepare("select salary from person where name='invalid'")
             | step([&](float salary){ return salary; })
             | onerror([&](auto e){ called = true; })
             ;

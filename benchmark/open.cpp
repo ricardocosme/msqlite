@@ -1,37 +1,45 @@
 #include <benchmark/benchmark.h>
+#include <filesystem>
 #include <iostream>
-#include <msqlite/open.hpp>
+#include <msqlite.hpp>
 
 namespace sql = msqlite;
 using namespace std;
 
+auto msqlite_path = "/tmp/msqlite_conn.db";
+
 void msqlite_conn() {
-    auto conn = sql::open("/tmp/msqlite_conn.db");
+    auto conn = sql::open(msqlite_path);
     if(!conn) cout << conn.error().value() << endl;
 }
 
 static void wmsqlite(benchmark::State& state) {
     for(auto _ : state)
         msqlite_conn();
+    std::filesystem::remove(msqlite_path);
 }
+
+BENCHMARK(wmsqlite);
+
+auto sqlite_path = "/tmp/sqlite_conn.db";
 
 void c_conn() {
     sqlite3* db;
-    auto ec = sqlite3_open("/tmp/c_conn.db", &db);
-    if(ec) {
+    auto rc = sqlite3_open(sqlite_path, &db);
+    if(rc) {
         sqlite3_close(db);
-        cout << ec << endl;
+        cout << rc << endl;
         return;
     }
     sqlite3_close(db);
 }
 
-static void wsqlite3(benchmark::State& state) {
+static void wsqlite(benchmark::State& state) {
     for(auto _ : state)
         c_conn();
+    std::filesystem::remove(sqlite_path);
 }
 
-BENCHMARK(wmsqlite);
-BENCHMARK(wsqlite3);
+BENCHMARK(wsqlite);
 
 BENCHMARK_MAIN();

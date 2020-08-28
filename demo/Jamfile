@@ -2,12 +2,16 @@ exe for_each : for_each.cpp ;
 exe populate : populate.cpp ;
 exe step : step.cpp ;
 exe throws : throws.cpp ;
+exe cache_stmts_using_db : cache_stmts/using_db.cpp ;
+exe cache_stmts_by_hand : cache_stmts/by_hand.cpp ;
 
 install stage
   : for_each
     populate
     step
     throws
+    cache_stmts_using_db
+    cache_stmts_by_hand
   : <install-dependencies>on <install-type>LIB <install-type>EXE
     <variant>release:<location>stage/release
     <variant>debug:<location>stage/debug

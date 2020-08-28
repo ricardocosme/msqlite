@@ -2,7 +2,7 @@
 #include <iostream>
 #include <msqlite/open.hpp>
 #include <msqlite/exec.hpp>
-#include <msqlite/query.hpp>
+#include <msqlite/prepare.hpp>
 
 namespace sql = msqlite;
 using namespace std;
@@ -14,13 +14,13 @@ static void wmsqlite(benchmark::State& state) {
               "insert into person values('abc');"
               "insert into person values('def');");
     for(auto _ : state) {
-        auto r = sql::query(conn, "select name from person");
+        auto r = sql::prepare(conn, "select name from person");
         if(!r) cout << r.error().value() << endl;
     }
 }
 
-inline int query(sqlite3* db, const char* s, sqlite3_stmt*& stmt) {
-    if(auto ec = sqlite3_prepare_v2(
+inline int prepare(sqlite3* db, const char* s, sqlite3_stmt*& stmt) {
+    if(auto rc = sqlite3_prepare_v2(
            db,
            s,
            -1,
@@ -28,7 +28,7 @@ inline int query(sqlite3* db, const char* s, sqlite3_stmt*& stmt) {
            nullptr))
     {
         sqlite3_finalize(stmt);
-        return ec;
+        return rc;
     }
     return 0;    
 }
@@ -41,7 +41,7 @@ static void wsqlite3(benchmark::State& state) {
               "insert into person values('def');");
     for(auto _ : state) {
         sqlite3_stmt* stmt;
-        auto r = query(conn.get(), "select name from person", stmt);
+        auto r = prepare(conn.get(), "select name from person", stmt);
         if(r) cout << r << endl;
         sqlite3_finalize(stmt);
     }

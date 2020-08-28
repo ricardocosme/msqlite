@@ -2,7 +2,7 @@
 #include <msqlite/open.hpp>
 #include <msqlite/exec.hpp>
 #include <msqlite/for_each.hpp>
-#include <msqlite/query.hpp>
+#include <msqlite/prepare.hpp>
 
 using namespace std;
 using namespace msqlite;
@@ -19,7 +19,7 @@ int main(){
     {
         auto conn = create();
         BOOST_TEST(conn);
-        auto pstmt = query(*conn, "select salary from person");
+        auto pstmt = prepare(*conn, "select salary from person");
         BOOST_TEST(pstmt);
         BOOST_TEST(pstmt->get());
         using res_t = std::vector<float>;
@@ -35,7 +35,7 @@ int main(){
         using res_t = std::vector<float>;
         res_t res;
         auto r = create()
-            | query("select salary from person")
+            | prepare("select salary from person")
             | for_each([&](float salary){ res.emplace_back(salary); })
             ;
         BOOST_TEST(r);
@@ -43,12 +43,12 @@ int main(){
         BOOST_TEST((res == res_t{1000.00, 1200.00, 1100.00}));
     }
 
-    //invalid query as an input
+    //invalid prepare as an input
     {
         using res_t = std::vector<float>;
         res_t res;
         auto r = create()
-            | query("invalid")
+            | prepare("invalid")
             | for_each([&](float salary){ res.emplace_back(salary); })
             ;
         BOOST_TEST(!r);
@@ -60,7 +60,7 @@ int main(){
         using res_t = std::vector<float>;
         res_t res;
         auto r = create()
-            | query("select salary from person where name = 'def'")
+            | prepare("select salary from person where name = 'def'")
             | for_each([&](float salary){ res.emplace_back(salary); })
             ;
         BOOST_TEST(r);
@@ -73,7 +73,7 @@ int main(){
         using res_t = std::vector<float>;
         res_t res;
         auto r = create()
-            | query("select salary from person where name = 'not_exist'")
+            | prepare("select salary from person where name = 'not_exist'")
             | for_each([&](float salary){ res.emplace_back(salary); })
             ;
         BOOST_TEST(r);
@@ -85,7 +85,7 @@ int main(){
         using res_t = std::vector<float>;
         res_t res;
         auto r = create()
-            | query("select salary from person")
+            | prepare("select salary from person")
             | for_each([&](float salary){ res.emplace_back(salary); })
             | exec("delete from person")
             ;
@@ -101,7 +101,7 @@ int main(){
         auto conn = create();
 
         auto r = conn
-            | query("select salary from person")
+            | prepare("select salary from person")
             | for_each([&](float salary){ res.emplace_back(salary); })
             ;
         BOOST_TEST(r);
@@ -114,7 +114,7 @@ int main(){
         using res_t = std::vector<float>;
         res_t res;
         auto stmt = create()
-            | query("select salary from person");
+            | prepare("select salary from person");
         
         auto r = stmt
             | for_each([&](float salary){ res.emplace_back(salary); })
@@ -131,7 +131,7 @@ int main(){
         auto conn = create();
 
         auto stmt = conn
-            | query("select salary from person");
+            | prepare("select salary from person");
         
         auto r = stmt
             | for_each([&](float salary){ res.emplace_back(salary); })
